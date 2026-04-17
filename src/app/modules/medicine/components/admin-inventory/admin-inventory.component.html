@@ -1,44 +1,94 @@
+<!-- Toast -->
+<div class="toast" *ngIf="toast"
+  [class.toast-success]="toastType==='success'"
+  [class.toast-warning]="toastType==='warning'"
+  [class.toast-error]="toastType==='error'">
+  <span class="toast-icon">
+    <ng-container *ngIf="toastType==='success'">&#10003;</ng-container>
+    <ng-container *ngIf="toastType==='warning'">&#9888;</ng-container>
+    <ng-container *ngIf="toastType==='error'">&#10005;</ng-container>
+  </span>
+  {{ toast }}
+</div>
+
 <div class="inv-page">
 
   <!-- Page Header -->
   <div class="inv-header">
-    <div class="inv-title-block">
+    <div>
       <h1>Inventory Management</h1>
-      <p>Monitor and update stock levels across all medicines</p>
+      <p class="subtitle">Monitor and restock medicines in your catalogue</p>
     </div>
     <div class="inv-header-actions">
+      <button class="btn-bulk-save"
+        *ngIf="changedCount > 0"
+        (click)="saveAllChanged()"
+        [disabled]="bulkSaving">
+        <span *ngIf="!bulkSaving">&#128190; Save All Changes ({{ changedCount }})</span>
+        <span *ngIf="bulkSaving" class="spin-mini"></span>
+        <span *ngIf="bulkSaving"> Saving…</span>
+      </button>
       <label class="toggle-pill" [class.active]="showLowStockOnly">
         <input type="checkbox" [(ngModel)]="showLowStockOnly" hidden />
         <span class="toggle-knob"></span>
         Low Stock Only
       </label>
-      <button class="btn-manage" (click)="goManage()">
-        &#9881; Manage Medicines
-      </button>
+      <button class="btn-manage" (click)="goManage()">&#9881; Medicines</button>
     </div>
   </div>
 
-  <!-- Stats Cards -->
+  <!-- Stats -->
   <div class="stat-row" *ngIf="!isLoading">
-    <div class="stat-card">
-      <div class="stat-icon blue">&#128200;</div>
-      <div>
-        <div class="stat-val">{{ totalCount }}</div>
+    <div class="stat-card stat-blue">
+      <div class="stat-icon-wrap blue">&#128200;</div>
+      <div class="stat-content">
+        <div class="stat-num">{{ totalCount }}</div>
         <div class="stat-label">Total Medicines</div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon amber">&#9888;</div>
-      <div>
-        <div class="stat-val">{{ lowStockCount }}</div>
+    <div class="stat-card stat-amber">
+      <div class="stat-icon-wrap amber">&#9888;</div>
+      <div class="stat-content">
+        <div class="stat-num">{{ lowStockCount }}</div>
         <div class="stat-label">Low Stock Alerts</div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon green">&#10004;</div>
-      <div>
-        <div class="stat-val">{{ totalCount - lowStockCount }}</div>
+    <div class="stat-card stat-red">
+      <div class="stat-icon-wrap red">&#215;</div>
+      <div class="stat-content">
+        <div class="stat-num">{{ outOfStockCount }}</div>
+        <div class="stat-label">Out of Stock</div>
+      </div>
+    </div>
+    <div class="stat-card stat-green">
+      <div class="stat-icon-wrap green">&#10004;</div>
+      <div class="stat-content">
+        <div class="stat-num">{{ totalCount - lowStockCount }}</div>
         <div class="stat-label">Adequately Stocked</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Low Stock Alert Panel -->
+  <div class="low-stock-panel" *ngIf="!isLoading && lowStockCount > 0">
+    <div class="lsp-header">
+      <span class="lsp-icon">&#9888;</span>
+      <strong>{{ lowStockCount }} medicine{{ lowStockCount > 1 ? 's' : '' }} need restocking</strong>
+    </div>
+    <div class="lsp-list">
+      <div class="lsp-item" *ngFor="let r of lowStockRows">
+        <span class="lsp-name">{{ r.medicineName }}</span>
+        <span class="lsp-detail">
+          <span class="lsp-qty" [class.lsp-out]="r.quantityInStock===0">
+            {{ r.quantityInStock === 0 ? 'Out of stock' : r.quantityInStock + ' units' }}
+          </span>
+          <span class="lsp-sep">/ reorder at {{ r.reorderLevel }}</span>
+        </span>
+        <div class="lsp-bar-wrap">
+          <div class="lsp-bar"
+            [style.width.%]="r.quantityInStock===0 ? 0 : (r.quantityInStock/r.reorderLevel)*100 > 100 ? 100 : (r.quantityInStock/r.reorderLevel)*100">
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -69,59 +119,74 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            *ngFor="let row of displayedRows; let i = index"
-            [class.row-low]="isRowLow(row)"
-          >
+          <tr *ngFor="let row of displayedRows; let i = index"
+              [class.row-low]="stockLevel(row)==='low'"
+              [class.row-out]="stockLevel(row)==='out'">
+
             <td class="td-num">{{ i + 1 }}</td>
             <td class="td-name">{{ row.medicineName }}</td>
+
+            <!-- Visual stock bar -->
             <td class="td-bar">
               <div class="bar-track">
-                <div
-                  class="bar-fill"
+                <div class="bar-fill"
                   [style.width.%]="getStockPercent(row)"
-                  [class.fill-low]="isRowLow(row)"
-                  [class.fill-ok]="!isRowLow(row)"
-                ></div>
+                  [class.fill-out]="stockLevel(row)==='out'"
+                  [class.fill-low]="stockLevel(row)==='low'"
+                  [class.fill-ok]="stockLevel(row)==='ok'">
+                </div>
+                <!-- Reorder line marker -->
+                <div class="reorder-marker"
+                  [style.left.%]="33">
+                </div>
+              </div>
+              <div class="bar-labels">
+                <span class="bar-val">{{ row.quantityInStock }}</span>
+                <span class="bar-reorder-lbl">reorder: {{ row.reorderLevel }}</span>
               </div>
             </td>
+
             <td>
-              <input
-                class="num-input"
-                type="number"
-                min="0"
+              <input class="num-input" type="number" min="0"
                 [(ngModel)]="row.editQty"
                 (ngModelChange)="markChanged(row)"
-              />
+                [class.input-changed]="row.hasChanges && row.editQty !== row.quantityInStock" />
             </td>
+
             <td>
-              <input
-                class="num-input"
-                type="number"
-                min="0"
+              <input class="num-input" type="number" min="0"
                 [(ngModel)]="row.editReorder"
                 (ngModelChange)="markChanged(row)"
-              />
+                [class.input-changed]="row.hasChanges && row.editReorder !== row.reorderLevel" />
             </td>
+
             <td>
-              <span class="status-chip" [class.chip-low]="isRowLow(row)" [class.chip-ok]="!isRowLow(row)">
-                {{ isRowLow(row) ? '⚠ Low' : '✔ OK' }}
+              <span class="status-chip"
+                [class.chip-out]="stockLevel(row)==='out'"
+                [class.chip-low]="stockLevel(row)==='low'"
+                [class.chip-ok]="stockLevel(row)==='ok'">
+                <ng-container *ngIf="stockLevel(row)==='out'">&#215; Out of Stock</ng-container>
+                <ng-container *ngIf="stockLevel(row)==='low'">&#9888; Low Stock</ng-container>
+                <ng-container *ngIf="stockLevel(row)==='ok'">&#10004; OK</ng-container>
               </span>
             </td>
+
             <td class="td-date">{{ row.lastUpdated | date:'dd MMM yy, HH:mm' }}</td>
+
             <td>
-              <button
-                class="save-btn"
-                [class.changed]="row.hasChanges"
+              <button class="save-btn"
+                [class.btn-changed]="row.hasChanges"
+                [class.btn-saved]="row.saved"
                 (click)="saveRow(row)"
-                [disabled]="row.saving || !row.hasChanges"
-              >
-                <span *ngIf="!row.saving && !row.saved">Save</span>
-                <span *ngIf="row.saving" class="spin-mini"></span>
+                [disabled]="row.saving || !row.hasChanges">
+                <span *ngIf="!row.saving && !row.saved && !row.hasChanges" class="save-idle">—</span>
+                <span *ngIf="!row.saving && !row.saved && row.hasChanges">Save</span>
+                <span *ngIf="row.saving" class="spin-mini-dark"></span>
                 <span *ngIf="row.saved" class="saved-ok">&#10003;</span>
               </button>
             </td>
           </tr>
+
           <tr *ngIf="displayedRows.length === 0">
             <td colspan="8" class="no-rows">No inventory records found.</td>
           </tr>
@@ -130,4 +195,3 @@
     </div>
   </div>
 </div>
-
