@@ -19,7 +19,7 @@ export class CartService {
   /**
    * Exposed for Module 2's medicine-detail component to call directly.
    */
-  addToCart(medicineId: number, quantity: number, prescriptionId?: number): Observable<Cart> {
+  addToCart(medicineId: number, quantity?: number, prescriptionId?: number): Observable<Cart> {
     return this.http.post<Cart>(`${this.apiUrl}/add`, { medicineId, quantity, prescriptionId });
   }
 

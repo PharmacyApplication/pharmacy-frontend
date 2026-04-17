@@ -34,11 +34,15 @@ export class MedicineDetailComponent implements OnInit {
 
   addToCart(): void {
     if (!this.medicine) return;
-    // this.addingToCart = true;
-    // this.cartService.addToCart(this.medicine.medicineId).subscribe({
-    //   next: () => { this.showToast('Added to cart successfully!', 'success'); this.addingToCart = false; },
-    //   error: (e) => { this.showToast(e?.error?.message || 'Failed to add to cart.', 'error'); this.addingToCart = false; }
-    // });
+    if (this.medicine.quantityInStock < 1) {
+      this.showToast('Insufficient stock available.', 'error');
+      return;
+    }
+    this.addingToCart = true;
+    this.cartService.addToCart(this.medicine.medicineId, 1).subscribe({
+      next: () => { this.showToast('Added to cart successfully!', 'success'); this.addingToCart = false; },
+      error: (e) => { this.showToast(e?.error?.message || 'Failed to add to cart.', 'error'); this.addingToCart = false; }
+    });
   }
 
   showToast(msg: string, type: 'success' | 'error'): void {

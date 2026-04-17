@@ -71,8 +71,9 @@ export class ManageMedicineComponent implements OnInit {
 
   applyFilters(): void {
     let list = this.medicines;
-    if (this.filterCategoryId !== 0) {
-      list = list.filter(m => m.categoryId === this.filterCategoryId);
+    const selectedCategoryId = Number(this.filterCategoryId);
+    if (selectedCategoryId !== 0) {
+      list = list.filter(m => m.categoryId === selectedCategoryId);
     }
     if (this.searchTerm.trim()) {
       const t = this.searchTerm.toLowerCase();

@@ -11,7 +11,7 @@ export interface CategoryDto {
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
-  private apiUrl = `${environment.apiUrl}/category`;
+  private apiUrl = `${environment.apiUrl}/medicine/categories`;
 
   constructor(private http: HttpClient) {}
 
