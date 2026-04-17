@@ -24,8 +24,8 @@
       <input type="text" placeholder="Search medicines…" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" />
     </div>
     <select class="cat-select" [(ngModel)]="filterCategoryId" (ngModelChange)="applyFilters()">
-      <option [value]="0">All Categories</option>
-      <option *ngFor="let c of categories" [value]="c.categoryId">{{ c.categoryName }}</option>
+      <option [ngValue]="0">All Categories</option>
+      <option *ngFor="let c of categories" [ngValue]="c.categoryId">{{ c.categoryName }}</option>
     </select>
     <span class="result-count">{{ filteredMedicines.length }} result(s)</span>
   </div>
@@ -121,7 +121,7 @@
             <label>Category <span class="req">*</span></label>
             <select formControlName="categoryId">
               <option [ngValue]="null" disabled>Select category…</option>
-              <option *ngFor="let c of categories" [value]="c.categoryId">{{ c.categoryName }}</option>
+              <option *ngFor="let c of categories" [ngValue]="c.categoryId">{{ c.categoryName }}</option>
             </select>
             <div class="field-err" *ngIf="isFieldInvalid('categoryId')">Category is required.</div>
           </div>
