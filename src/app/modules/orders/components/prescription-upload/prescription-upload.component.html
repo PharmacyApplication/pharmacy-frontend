@@ -1,1 +1,64 @@
-<p>prescription-upload works!</p>
+<div class="rx-page">
+  <div class="rx-header">
+    <div class="rx-icon">℞</div>
+    <div>
+      <h1 class="rx-title">Prescription Upload</h1>
+      <p class="rx-subtitle">Upload your prescription for approval before ordering</p>
+    </div>
+  </div>
+
+  <!-- Upload Form -->
+  <div class="upload-card">
+    <h2 class="section-title">New Prescription</h2>
+
+    <div class="form-group">
+      <label class="form-label">Select Medicine</label>
+      <select class="form-control" [(ngModel)]="selectedMedicineId">
+        <option [ngValue]="null" disabled>— Choose a medicine —</option>
+        <option *ngFor="let m of medicines" [ngValue]="m.medicineId">{{ m.name }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Prescription File</label>
+      <div class="file-drop-area" (click)="fileInput.click()">
+        <span class="file-icon">📎</span>
+        <span class="file-label">{{ selectedFile ? selectedFile.name : 'Click to choose file (PDF, JPG, PNG)' }}</span>
+        <input #fileInput type="file" accept=".pdf,.jpg,.jpeg,.png" hidden (change)="onFileSelected($event)" />
+      </div>
+    </div>
+
+    <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+    <div *ngIf="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
+
+    <button class="btn-upload" (click)="onUpload()" [disabled]="isUploading">
+      <span *ngIf="!isUploading">Upload Prescription</span>
+      <span *ngIf="isUploading" class="spinner">Uploading…</span>
+    </button>
+  </div>
+
+  <!-- Prescription History -->
+  <div class="history-section">
+    <h2 class="section-title">My Prescriptions</h2>
+
+    <div *ngIf="prescriptions.length === 0" class="empty-state">
+      No prescriptions uploaded yet.
+    </div>
+
+    <div class="rx-list">
+      <div *ngFor="let rx of prescriptions" class="rx-card">
+        <div class="rx-card-header">
+          <span class="medicine-name">{{ rx.medicineName }}</span>
+          <span class="status-badge" [ngClass]="getStatusClass(rx.status)">{{ rx.status }}</span>
+        </div>
+        <div class="rx-card-body">
+          <p class="rx-meta">Uploaded: {{ rx.uploadedAt | date:'mediumDate' }}</p>
+          <p *ngIf="rx.reviewedAt" class="rx-meta">Reviewed: {{ rx.reviewedAt | date:'mediumDate' }}</p>
+          <p *ngIf="rx.status === 'Rejected' && rx.rejectionReason" class="rejection-reason">
+            <strong>Reason:</strong> {{ rx.rejectionReason }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
