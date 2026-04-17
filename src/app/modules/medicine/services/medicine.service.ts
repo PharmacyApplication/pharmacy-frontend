@@ -17,7 +17,7 @@ export interface MedicineDto {
   quantityInStock: number;
   reorderLevel: number;
 }
-
+//Added
 export interface CreateMedicineDto {
   name: string;
   description: string;
