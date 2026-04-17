@@ -1,41 +1,100 @@
-<!-- Toast -->
-<div class="toast" *ngIf="toast" [class.toast-error]="toastType==='error'">
+<!-- ── Toast ──────────────────────────────────────────────────────────────── -->
+<div class="toast" *ngIf="toast"
+  [class.toast-success]="toastType==='success'"
+  [class.toast-warning]="toastType==='warning'"
+  [class.toast-error]="toastType==='error'">
+  <span class="toast-icon">
+    <ng-container *ngIf="toastType==='success'">&#10003;</ng-container>
+    <ng-container *ngIf="toastType==='warning'">&#9888;</ng-container>
+    <ng-container *ngIf="toastType==='error'">&#10005;</ng-container>
+  </span>
   {{ toast }}
 </div>
 
 <div class="mgmt-page">
 
-  <!-- Header -->
+  <!-- ── Page Header ──────────────────────────────────────────────────────── -->
   <div class="mgmt-header">
     <div>
-      <h1>Manage Medicines</h1>
-      <p>Add, edit or deactivate medicines in your catalogue</p>
+      <h1>Medicine Catalogue</h1>
+      <p class="subtitle">Manage medicines, stock levels and availability</p>
     </div>
     <div class="mgmt-header-actions">
-      <button class="btn-secondary" (click)="goInventory()">&#128200; Inventory</button>
+      <button class="btn-icon-secondary" (click)="goInventory()" title="Go to Inventory">
+        &#128200; Inventory
+      </button>
       <button class="btn-primary" (click)="openAddModal()">&#43; Add Medicine</button>
     </div>
   </div>
 
-  <!-- Filters -->
+  <!-- ── Stat Cards ──────────────────────────────────────────────────────── -->
+  <div class="stat-row" *ngIf="!isLoading">
+    <div class="stat-card stat-blue" (click)="filterStatus='all'; applyFilters()" [class.stat-selected]="filterStatus==='all'">
+      <div class="stat-icon-wrap blue">&#128200;</div>
+      <div class="stat-content">
+        <div class="stat-num">{{ medicines.length }}</div>
+        <div class="stat-label">Total Medicines</div>
+      </div>
+    </div>
+    <div class="stat-card stat-green" (click)="filterStatus='active'; applyFilters()" [class.stat-selected]="filterStatus==='active'">
+      <div class="stat-icon-wrap green">&#10004;</div>
+      <div class="stat-content">
+        <div class="stat-num">{{ totalActive }}</div>
+        <div class="stat-label">Active</div>
+      </div>
+    </div>
+    <div class="stat-card stat-amber" (click)="filterStatus='lowstock'; applyFilters()" [class.stat-selected]="filterStatus==='lowstock'">
+      <div class="stat-icon-wrap amber">&#9888;</div>
+      <div class="stat-content">
+        <div class="stat-num">{{ totalLowStock }}</div>
+        <div class="stat-label">Low Stock</div>
+      </div>
+    </div>
+    <div class="stat-card stat-red" (click)="filterStatus='inactive'; applyFilters()" [class.stat-selected]="filterStatus==='inactive'">
+      <div class="stat-icon-wrap red">&#128683;</div>
+      <div class="stat-content">
+        <div class="stat-num">{{ totalInactive }}</div>
+        <div class="stat-label">Inactive</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Low Stock Alert Banner ──────────────────────────────────────────── -->
+  <div class="alert-banner" *ngIf="!isLoading && totalLowStock > 0">
+    <span class="alert-icon">&#9888;</span>
+    <span>
+      <strong>{{ totalLowStock }} medicine{{ totalLowStock > 1 ? 's' : '' }}</strong>
+      {{ totalLowStock > 1 ? 'are' : 'is' }} below reorder level.
+    </span>
+    <button class="alert-action" (click)="filterStatus='lowstock'; applyFilters()">View Low Stock</button>
+  </div>
+
+  <!-- ── Filters ──────────────────────────────────────────────────────────── -->
   <div class="mgmt-filters">
     <div class="search-box">
       <span class="s-icon">&#128269;</span>
       <input type="text" placeholder="Search medicines…" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" />
     </div>
-    <select class="cat-select" [(ngModel)]="filterCategoryId" (ngModelChange)="applyFilters()">
+    <select class="filter-select" [(ngModel)]="filterCategoryId" (ngModelChange)="applyFilters()">
       <option [ngValue]="0">All Categories</option>
       <option *ngFor="let c of categories" [ngValue]="c.categoryId">{{ c.categoryName }}</option>
+    </select>
+    <select class="filter-select" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()">
+      <option value="all">All Status</option>
+      <option value="active">Active Only</option>
+      <option value="inactive">Inactive Only</option>
+      <option value="lowstock">Low Stock Only</option>
     </select>
     <span class="result-count">{{ filteredMedicines.length }} result(s)</span>
   </div>
 
-  <!-- Loading -->
+  <!-- ── Loading ──────────────────────────────────────────────────────────── -->
   <div *ngIf="isLoading" class="loading-wrap">
-    <div class="spinner"></div><p>Loading medicines…</p>
+    <div class="spinner"></div>
+    <p>Loading medicines…</p>
   </div>
 
-  <!-- Table -->
+  <!-- ── Table ────────────────────────────────────────────────────────────── -->
   <div *ngIf="!isLoading" class="mgmt-table-card">
     <div class="mgmt-table-wrap">
       <table class="mgmt-table">
@@ -46,50 +105,101 @@
             <th>Category</th>
             <th>Price</th>
             <th>Stock</th>
+            <th>Reorder</th>
             <th>Rx</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let m of filteredMedicines" [class.inactive-row]="!m.isActive">
+          <tr *ngFor="let m of filteredMedicines"
+              [class.row-inactive]="!m.isActive"
+              [class.row-lowstock]="m.isActive && m.isLowStock">
+
             <td>
-              <img
-                class="tbl-thumb"
+              <img class="tbl-thumb"
                 [src]="m.imageUrl || 'assets/images/medicine-placeholder.png'"
-                [alt]="m.name"
-              />
+                [alt]="m.name" />
             </td>
+
             <td class="td-name">
               {{ m.name }}
-              <span class="inactive-chip" *ngIf="!m.isActive">Inactive</span>
+              <span class="chip chip-inactive" *ngIf="!m.isActive">Inactive</span>
+              <span class="chip chip-low" *ngIf="m.isActive && m.isLowStock">Low Stock</span>
             </td>
-            <td><span class="tbl-cat">{{ m.categoryName }}</span></td>
+
+            <td><span class="cat-tag">{{ m.categoryName }}</span></td>
+
             <td class="td-price">&#8377;{{ m.price | number:'1.2-2' }}</td>
+
             <td>
-              <span class="stk-badge" [class.stk-ok]="m.quantityInStock > 0" [class.stk-out]="m.quantityInStock === 0">
-                {{ m.quantityInStock > 0 ? m.quantityInStock + ' units' : 'Out' }}
+              <span class="stk-badge"
+                [class.stk-ok]="getStockLevel(m)==='ok'"
+                [class.stk-low]="getStockLevel(m)==='low'"
+                [class.stk-out]="getStockLevel(m)==='out'">
+                <ng-container *ngIf="getStockLevel(m)==='ok'">&#10003; {{ m.quantityInStock }}</ng-container>
+                <ng-container *ngIf="getStockLevel(m)==='low'">&#9888; {{ m.quantityInStock }}</ng-container>
+                <ng-container *ngIf="getStockLevel(m)==='out'">&#215; Out</ng-container>
               </span>
             </td>
+
+            <td class="td-reorder">
+              <span class="reorder-val" [class.reorder-breach]="m.isLowStock && m.isActive">
+                {{ m.reorderLevel }}
+              </span>
+            </td>
+
             <td>
               <span class="rx-dot" [class.rx-yes]="m.requiresPrescription" [class.rx-no]="!m.requiresPrescription">
-                {{ m.requiresPrescription ? 'Yes' : 'No' }}
+                {{ m.requiresPrescription ? 'Rx' : '—' }}
               </span>
             </td>
+
             <td>
               <span class="status-dot" [class.dot-active]="m.isActive" [class.dot-inactive]="!m.isActive">
                 ● {{ m.isActive ? 'Active' : 'Inactive' }}
               </span>
             </td>
+
             <td>
               <div class="action-btns">
-                <button class="act-edit" (click)="openEditModal(m)" title="Edit">&#9998;</button>
-                <button class="act-del" (click)="openDeleteConfirm(m)" title="Deactivate" [disabled]="!m.isActive">&#128465;</button>
+                <!-- Edit (always available) -->
+                <button class="act-btn act-edit" (click)="openEditModal(m)" title="Edit">
+                  &#9998;
+                </button>
+
+                <!-- Deactivate (only for active medicines) -->
+                <button class="act-btn act-deactivate"
+                  *ngIf="m.isActive"
+                  (click)="openDeactivateConfirm(m)"
+                  title="Deactivate">
+                  &#128683;
+                </button>
+
+                <!-- Restore (only for inactive medicines) -->
+                <button class="act-btn act-restore"
+                  *ngIf="!m.isActive"
+                  (click)="openRestoreConfirm(m)"
+                  title="Restore">
+                  &#8635;
+                </button>
+
+                <!-- Hard Delete (only for inactive medicines — permanent) -->
+                <button class="act-btn act-harddelete"
+                  *ngIf="!m.isActive"
+                  (click)="openHardDeleteConfirm(m)"
+                  title="Permanently Delete">
+                  &#128465;
+                </button>
               </div>
             </td>
           </tr>
+
           <tr *ngIf="filteredMedicines.length === 0">
-            <td colspan="8" class="no-rows">No medicines found. <a (click)="openAddModal()">Add one now.</a></td>
+            <td colspan="9" class="no-rows">
+              No medicines match your filters.
+              <a (click)="filterStatus='all'; searchTerm=''; filterCategoryId=0; applyFilters()">Clear filters</a>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -97,9 +207,10 @@
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════
+
+<!-- ════════════════════════════════════════════════════════════
      ADD / EDIT MODAL
-════════════════════════════════════════════════ -->
+════════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -139,51 +250,38 @@
             <div class="field-err" *ngIf="isFieldInvalid('price')">Valid price required.</div>
           </div>
           <div class="form-group">
-  <label>Medicine Image</label>
-
-  <!-- File picker -->
-  <label class="img-upload-label">
-    <input
-      type="file"
-      accept="image/*"
-      style="display:none"
-      (change)="onImageFileSelected($event)"
-      [disabled]="imageUploading"
-    />
-    <span class="img-upload-btn">
-      <span *ngIf="!imageUploading">&#128247; Choose Image</span>
-      <span *ngIf="imageUploading" class="spin-mini"></span>
-      <span *ngIf="imageUploading"> Uploading…</span>
-    </span>
-  </label>
-
-  <!-- Preview -->
-  <div class="img-preview-wrap" *ngIf="imagePreview">
-    <img [src]="imagePreview" alt="Preview" class="img-preview" />
-    <button type="button" class="img-clear-btn"
-      (click)="imagePreview=''; form.patchValue({imageUrl:''})">&#10005;</button>
-  </div>
-
-  <div class="field-err" *ngIf="imageUploadError">{{ imageUploadError }}</div>
-  <!-- Hidden field still holds the Cloudinary URL -->
-  <input formControlName="imageUrl" type="hidden" />
-</div>
+            <label>Medicine Image</label>
+            <label class="img-upload-label">
+              <input type="file" accept="image/*" style="display:none"
+                (change)="onImageFileSelected($event)" [disabled]="imageUploading" />
+              <span class="img-upload-btn">
+                <span *ngIf="!imageUploading">&#128247; Choose Image</span>
+                <span *ngIf="imageUploading" class="spin-mini"></span>
+                <span *ngIf="imageUploading"> Uploading…</span>
+              </span>
+            </label>
+            <div class="img-preview-wrap" *ngIf="imagePreview">
+              <img [src]="imagePreview" alt="Preview" class="img-preview" />
+              <button type="button" class="img-clear-btn"
+                (click)="imagePreview=''; form.patchValue({imageUrl:''})">&#10005;</button>
+            </div>
+            <div class="field-err" *ngIf="imageUploadError">{{ imageUploadError }}</div>
+            <input formControlName="imageUrl" type="hidden" />
+          </div>
         </div>
 
-        <div class="form-row" *ngIf="modalMode === 'add'">
+        <!-- Stock fields — shown for Add, and also for Edit -->
+        <div class="form-row">
           <div class="form-group">
-            <label>Initial Stock <span class="req">*</span></label>
+            <label>{{ modalMode === 'add' ? 'Initial Stock' : 'Quantity in Stock' }} <span class="req">*</span></label>
             <input formControlName="quantityInStock" type="number" min="0" step="1" placeholder="0" />
-            <div class="field-err" *ngIf="isFieldInvalid('quantityInStock')">
-              Stock quantity is required (min 0).
-            </div>
+            <div class="field-err" *ngIf="isFieldInvalid('quantityInStock')">Stock quantity is required (min 0).</div>
           </div>
           <div class="form-group">
             <label>Reorder Level <span class="req">*</span></label>
             <input formControlName="reorderLevel" type="number" min="0" step="1" placeholder="10" />
-            <div class="field-err" *ngIf="isFieldInvalid('reorderLevel')">
-              Reorder level is required (min 0).
-            </div>
+            <div class="hint">Alert triggers when stock falls below this</div>
+            <div class="field-err" *ngIf="isFieldInvalid('reorderLevel')">Reorder level is required (min 0).</div>
           </div>
         </div>
 
@@ -210,21 +308,94 @@
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════
-     DELETE CONFIRM DIALOG
-════════════════════════════════════════════════ -->
-<div class="modal-backdrop" *ngIf="isDeleteConfirmOpen" (click)="cancelDelete()">
+
+<!-- ════════════════════════════════════════════════════════════
+     DEACTIVATE CONFIRM DIALOG
+════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" *ngIf="isDeactivateConfirmOpen" (click)="cancelDeactivate()">
   <div class="confirm-dialog" (click)="$event.stopPropagation()">
-    <div class="confirm-icon">&#9888;</div>
+    <div class="confirm-icon amber">&#9888;</div>
     <h3>Deactivate Medicine?</h3>
     <p>
-      <strong>{{ medicineToDelete?.name }}</strong> will be marked as inactive and
-      hidden from the catalogue. This can be reversed by editing the medicine.
+      <strong>{{ medicineToDeactivate?.name }}</strong> will be hidden from the catalogue.
+      You can restore it at any time from this admin panel.
     </p>
     <div class="confirm-actions">
-      <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
-      <button class="btn-danger" (click)="confirmDelete()">Yes, Deactivate</button>
+      <button class="btn-cancel" (click)="cancelDeactivate()">Cancel</button>
+      <button class="btn-warning" (click)="confirmDeactivate()">Yes, Deactivate</button>
     </div>
   </div>
 </div>
 
+
+<!-- ════════════════════════════════════════════════════════════
+     RESTORE CONFIRM DIALOG
+════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" *ngIf="isRestoreConfirmOpen" (click)="cancelRestore()">
+  <div class="confirm-dialog" (click)="$event.stopPropagation()">
+    <div class="confirm-icon green">&#8635;</div>
+    <h3>Restore Medicine?</h3>
+    <p>
+      <strong>{{ medicineToRestore?.name }}</strong> will be marked active and
+      visible in the catalogue again.
+    </p>
+    <div class="confirm-actions">
+      <button class="btn-cancel" (click)="cancelRestore()">Cancel</button>
+      <button class="btn-success" (click)="confirmRestore()">Yes, Restore</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     HARD DELETE CONFIRM DIALOG (two-step)
+════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" *ngIf="isHardDeleteConfirmOpen" (click)="cancelHardDelete()">
+  <div class="confirm-dialog confirm-danger" (click)="$event.stopPropagation()">
+
+    <!-- Step 1: Warning -->
+    <ng-container *ngIf="hardDeleteStep === 1">
+      <div class="confirm-icon red">&#128465;</div>
+      <h3>Permanently Delete?</h3>
+      <p>
+        You are about to <strong>permanently delete</strong>
+        <strong>{{ medicineToHardDelete?.name }}</strong>.
+        This action cannot be undone and will also remove all inventory records for this medicine.
+      </p>
+      <div class="danger-info">
+        <span>&#9888;</span>
+        Only inactive medicines can be permanently deleted. This is irreversible.
+      </div>
+      <div class="confirm-actions">
+        <button class="btn-cancel" (click)="cancelHardDelete()">Cancel</button>
+        <button class="btn-danger" (click)="proceedToHardDeleteStep2()">I understand, continue →</button>
+      </div>
+    </ng-container>
+
+    <!-- Step 2: Type name to confirm -->
+    <ng-container *ngIf="hardDeleteStep === 2">
+      <div class="confirm-icon red">&#9888;</div>
+      <h3>Final Confirmation</h3>
+      <p>
+        Type the medicine name exactly to confirm permanent deletion:
+      </p>
+      <div class="confirm-name-hint">{{ medicineToHardDelete?.name }}</div>
+      <input
+        class="confirm-input"
+        type="text"
+        placeholder="Type medicine name…"
+        [(ngModel)]="hardDeleteConfirmText"
+        (click)="$event.stopPropagation()"
+      />
+      <div class="confirm-actions">
+        <button class="btn-cancel" (click)="cancelHardDelete()">Cancel</button>
+        <button class="btn-danger"
+          [disabled]="!hardDeleteNameMatches"
+          (click)="confirmHardDelete()">
+          Delete Permanently
+        </button>
+      </div>
+    </ng-container>
+
+  </div>
+</div>

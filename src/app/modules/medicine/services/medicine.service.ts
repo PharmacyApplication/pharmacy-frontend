@@ -16,6 +16,7 @@ export interface MedicineDto {
   createdAt: string;
   quantityInStock: number;
   reorderLevel: number;
+  isLowStock: boolean;   // NEW: server-computed
 }
 
 export interface CreateMedicineDto {
@@ -25,8 +26,8 @@ export interface CreateMedicineDto {
   categoryId: number;
   requiresPrescription: boolean;
   imageUrl: string;
-  quantityInStock: number;   // ← add
-  reorderLevel: number;      // ← add
+  quantityInStock: number;
+  reorderLevel: number;
 }
 
 export interface UpdateMedicineDto extends CreateMedicineDto {
@@ -39,8 +40,14 @@ export class MedicineService {
 
   constructor(private http: HttpClient) {}
 
+  // Active medicines only (for customer-facing views)
   getAll(): Observable<MedicineDto[]> {
     return this.http.get<MedicineDto[]>(this.apiUrl);
+  }
+
+  // All medicines including inactive (for admin manage view)
+  getAllIncludingInactive(): Observable<MedicineDto[]> {
+    return this.http.get<MedicineDto[]>(`${this.apiUrl}/all`);
   }
 
   getById(id: number): Observable<MedicineDto> {
@@ -59,9 +66,18 @@ export class MedicineService {
     return this.http.put<MedicineDto>(`${this.apiUrl}/${id}`, dto);
   }
 
-  delete(id: number): Observable<any> {
+  // Soft delete — deactivates medicine (reversible)
+  softDelete(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+
+  // Hard delete — permanently removes medicine + inventory (irreversible)
+  hardDelete(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}/permanent`);
+  }
+
+  // Restore — reactivates a deactivated medicine
+  restore(id: number): Observable<MedicineDto> {
+    return this.http.patch<MedicineDto>(`${this.apiUrl}/${id}/restore`, {});
+  }
 }
-
-
