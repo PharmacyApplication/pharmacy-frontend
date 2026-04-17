@@ -1,0 +1,154 @@
+.inventory-container {
+  padding: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.inventory-header h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a3c5e;
+}
+
+.low-stock-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #555;
+  cursor: pointer;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.inventory-table th {
+  background: #1a3c5e;
+  color: #fff;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.inventory-table td {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.inventory-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.low-stock-row {
+  background: #fff8e1 !important;
+}
+
+.low-stock-row:hover {
+  background: #fff3cd !important;
+}
+
+.medicine-name {
+  font-weight: 600;
+  color: #222;
+}
+
+.qty-input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.qty-input:focus {
+  outline: none;
+  border-color: #2a7ae4;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.status-badge.low {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+}
+
+.status-badge.ok {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.date-cell {
+  color: #777;
+  font-size: 0.83rem;
+  white-space: nowrap;
+}
+
+.save-btn {
+  padding: 7px 16px;
+  background: #2a7ae4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: #1a5cbf;
+}
+
+.save-btn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+.saved-tick {
+  margin-left: 8px;
+  color: #2e7d32;
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.loading-msg,
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: #777;
+}
+
+.error-msg {
+  color: #c62828;
+  background: #fce4e4;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+

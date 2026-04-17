@@ -1,0 +1,169 @@
+.detail-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #2a7ae4;
+  font-size: 0.95rem;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 0;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+}
+
+.detail-card {
+  display: flex;
+  gap: 36px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.detail-image-section {
+  flex: 0 0 300px;
+  position: relative;
+}
+
+.detail-image {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.rx-badge {
+  display: inline-block;
+  margin-top: 10px;
+  background: #e53935;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.detail-info-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-name {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #1a3c5e;
+  margin: 0;
+}
+
+.detail-category {
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.detail-description {
+  color: #444;
+  line-height: 1.6;
+}
+
+.detail-price {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a3c5e;
+}
+
+.stock-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stock-label {
+  font-weight: 600;
+  color: #555;
+}
+
+.stock-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.in-stock {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.out-of-stock {
+  background: #fce4e4;
+  color: #c62828;
+}
+
+.add-to-cart-btn {
+  padding: 12px 28px;
+  background: #2a7ae4;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  align-self: flex-start;
+}
+
+.add-to-cart-btn:hover:not(:disabled) {
+  background: #1a5cbf;
+}
+
+.add-to-cart-btn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+.rx-note {
+  color: #b85c00;
+  background: #fff3e0;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.88rem;
+}
+
+.loading-msg,
+.error-msg,
+.success-msg {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+
+.error-msg {
+  background: #fce4e4;
+  color: #c62828;
+}
+
+.success-msg {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+@media (max-width: 640px) {
+  .detail-card {
+    flex-direction: column;
+  }
+  .detail-image-section {
+    flex: unset;
+  }
+}
+
+

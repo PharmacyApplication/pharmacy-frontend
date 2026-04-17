@@ -1,1 +1,48 @@
-<p>medicine-detail works!</p>
+<div class="detail-container">
+  <button class="back-btn" (click)="goBack()">&#8592; Back to Medicines</button>
+
+  <div *ngIf="isLoading" class="loading-msg">Loading medicine details...</div>
+  <div *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="success-msg">{{ successMessage }}</div>
+
+  <div *ngIf="medicine && !isLoading" class="detail-card">
+    <div class="detail-image-section">
+      <img
+        [src]="medicine.imageUrl || 'assets/images/medicine-placeholder.png'"
+        [alt]="medicine.name"
+        class="detail-image"
+      />
+      <span *ngIf="medicine.requiresPrescription" class="rx-badge">Prescription Required</span>
+    </div>
+
+    <div class="detail-info-section">
+      <h1 class="detail-name">{{ medicine.name }}</h1>
+      <p class="detail-category">Category: <strong>{{ medicine.categoryName }}</strong></p>
+
+      <p class="detail-description">{{ medicine.description }}</p>
+
+      <div class="detail-price">₹{{ medicine.price | number: '1.2-2' }}</div>
+
+      <div class="stock-info">
+        <span class="stock-label">Availability:</span>
+        <span [class.in-stock]="isInStock()" [class.out-of-stock]="!isInStock()" class="stock-badge">
+          {{ isInStock() ? 'In Stock (' + medicine.quantityInStock + ' units)' : 'Out of Stock' }}
+        </span>
+      </div>
+
+      <button
+        class="add-to-cart-btn"
+        (click)="addToCart()"
+        [disabled]="!isInStock() || addingToCart"
+      >
+        {{ addingToCart ? 'Adding...' : 'Add to Cart' }}
+      </button>
+
+      <p *ngIf="medicine.requiresPrescription" class="rx-note">
+        ⚠️ A valid prescription is required for this medicine. You will be prompted to upload it at checkout.
+      </p>
+    </div>
+  </div>
+</div>
+
+
