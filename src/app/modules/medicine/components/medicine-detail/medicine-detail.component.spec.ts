@@ -1,0 +1,21 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { MedicineDetailComponent } from './medicine-detail.component';
+
+describe('MedicineDetailComponent', () => {
+  let component: MedicineDetailComponent;
+  let fixture: ComponentFixture<MedicineDetailComponent>;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      declarations: [MedicineDetailComponent]
+    });
+    fixture = TestBed.createComponent(MedicineDetailComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
