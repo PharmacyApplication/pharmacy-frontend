@@ -1,1 +1,74 @@
-<p>admin-inventory works!</p>
+<div class="inventory-container">
+  <div class="inventory-header">
+    <h2>Inventory Management</h2>
+    <label class="low-stock-toggle">
+      <input type="checkbox" [(ngModel)]="showLowStockOnly" />
+      Show low-stock only
+    </label>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-msg">Loading inventory...</div>
+  <div *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</div>
+
+  <div *ngIf="!isLoading" class="table-wrapper">
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Medicine Name</th>
+          <th>Current Stock</th>
+          <th>Reorder Level</th>
+          <th>Status</th>
+          <th>Last Updated</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let row of displayedRows; let i = index"
+          [class.low-stock-row]="isRowLow(row)"
+        >
+          <td>{{ i + 1 }}</td>
+          <td class="medicine-name">{{ row.medicineName }}</td>
+          <td>
+            <input
+              type="number"
+              class="qty-input"
+              [(ngModel)]="row.editQty"
+              min="0"
+            />
+          </td>
+          <td>
+            <input
+              type="number"
+              class="qty-input"
+              [(ngModel)]="row.editReorder"
+              min="0"
+            />
+          </td>
+          <td>
+            <span class="status-badge" [class.low]="isRowLow(row)" [class.ok]="!isRowLow(row)">
+              {{ isRowLow(row) ? 'Low Stock' : 'OK' }}
+            </span>
+          </td>
+          <td class="date-cell">{{ row.lastUpdated | date: 'dd MMM yyyy, HH:mm' }}</td>
+          <td>
+            <button
+              class="save-btn"
+              (click)="saveRow(row)"
+              [disabled]="row.saving"
+            >
+              {{ row.saving ? 'Saving...' : 'Save' }}
+            </button>
+            <span *ngIf="row.saved" class="saved-tick">✔ Saved</span>
+          </td>
+        </tr>
+        <tr *ngIf="displayedRows.length === 0">
+          <td colspan="7" class="no-results">No inventory records to display.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+

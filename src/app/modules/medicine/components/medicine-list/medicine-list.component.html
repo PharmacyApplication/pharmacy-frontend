@@ -1,1 +1,62 @@
-<p>medicine-list works!</p>
+<div class="medicine-list-container">
+  <h2 class="page-title">Medicines</h2>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search medicines..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearchChange()"
+    />
+    <select
+      class="category-select"
+      [(ngModel)]="selectedCategoryId"
+      (ngModelChange)="onCategoryChange()"
+    >
+      <option [value]="0">All Categories</option>
+      <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+    </select>
+  </div>
+
+  <!-- Loading / Error -->
+  <div *ngIf="isLoading" class="loading-msg">Loading medicines...</div>
+  <div *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</div>
+
+  <!-- Card Grid -->
+  <div *ngIf="!isLoading" class="medicine-grid">
+    <div
+      class="medicine-card"
+      *ngFor="let medicine of filteredMedicines"
+      [routerLink]="['/medicine/detail', medicine.medicineId]"
+    >
+      <div class="card-image-wrapper">
+        <img
+          [src]="medicine.imageUrl || 'assets/images/medicine-placeholder.png'"
+          [alt]="medicine.name"
+          class="card-image"
+        />
+        <span *ngIf="medicine.requiresPrescription" class="rx-badge">Rx Required</span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-name">{{ medicine.name }}</h3>
+        <p class="card-category">{{ medicine.categoryName }}</p>
+        <p class="card-price">₹{{ medicine.price | number: '1.2-2' }}</p>
+        <span
+          class="stock-badge"
+          [class.in-stock]="isInStock(medicine)"
+          [class.out-of-stock]="!isInStock(medicine)"
+        >
+          {{ isInStock(medicine) ? 'In Stock' : 'Out of Stock' }}
+        </span>
+      </div>
+    </div>
+
+    <p *ngIf="filteredMedicines.length === 0" class="no-results">
+      No medicines found matching your search.
+    </p>
+  </div>
+</div>
+
+
