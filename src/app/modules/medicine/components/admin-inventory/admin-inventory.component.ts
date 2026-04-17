@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { InventoryService, InventoryDto } from '../../services/inventory.service';
 
 interface InventoryRow extends InventoryDto {
@@ -6,6 +7,7 @@ interface InventoryRow extends InventoryDto {
   editReorder: number;
   saving: boolean;
   saved: boolean;
+  hasChanges: boolean;
 }
 
 @Component({
@@ -19,11 +21,12 @@ export class AdminInventoryComponent implements OnInit {
   errorMessage = '';
   showLowStockOnly = false;
 
-  constructor(private inventoryService: InventoryService) {}
+  lowStockCount = 0;
+  totalCount = 0;
 
-  ngOnInit(): void {
-    this.loadInventory();
-  }
+  constructor(private inventoryService: InventoryService, private router: Router) {}
+
+  ngOnInit(): void { this.loadInventory(); }
 
   loadInventory(): void {
     this.isLoading = true;
@@ -34,14 +37,14 @@ export class AdminInventoryComponent implements OnInit {
           editQty: item.quantityInStock,
           editReorder: item.reorderLevel,
           saving: false,
-          saved: false
+          saved: false,
+          hasChanges: false
         }));
+        this.totalCount = data.length;
+        this.lowStockCount = data.filter(d => d.quantityInStock <= d.reorderLevel).length;
         this.isLoading = false;
       },
-      error: () => {
-        this.errorMessage = 'Failed to load inventory.';
-        this.isLoading = false;
-      }
+      error: () => { this.errorMessage = 'Failed to load inventory.'; this.isLoading = false; }
     });
   }
 
@@ -49,6 +52,10 @@ export class AdminInventoryComponent implements OnInit {
     return this.showLowStockOnly
       ? this.rows.filter(r => r.quantityInStock <= r.reorderLevel)
       : this.rows;
+  }
+
+  markChanged(row: InventoryRow): void {
+    row.hasChanges = (row.editQty !== row.quantityInStock || row.editReorder !== row.reorderLevel);
   }
 
   saveRow(row: InventoryRow): void {
@@ -59,24 +66,30 @@ export class AdminInventoryComponent implements OnInit {
       reorderLevel: row.editReorder
     }).subscribe({
       next: (updated) => {
-        row.quantityInStock = updated.quantityInStock;
-        row.reorderLevel = updated.reorderLevel;
-        row.lastUpdated = updated.lastUpdated;
-        row.isLowStock = updated.isLowStock;
-        row.editQty = updated.quantityInStock;
-        row.editReorder = updated.reorderLevel;
-        row.saving = false;
-        row.saved = true;
+        Object.assign(row, {
+          quantityInStock: updated.quantityInStock,
+          reorderLevel: updated.reorderLevel,
+          lastUpdated: updated.lastUpdated,
+          isLowStock: updated.isLowStock,
+          editQty: updated.quantityInStock,
+          editReorder: updated.reorderLevel,
+          saving: false,
+          saved: true,
+          hasChanges: false
+        });
+        this.lowStockCount = this.rows.filter(r => r.quantityInStock <= r.reorderLevel).length;
         setTimeout(() => row.saved = false, 2500);
       },
-      error: () => {
-        row.saving = false;
-      }
+      error: () => { row.saving = false; }
     });
   }
 
-  isRowLow(row: InventoryRow): boolean {
-    return row.quantityInStock <= row.reorderLevel;
+  isRowLow(row: InventoryRow): boolean { return row.quantityInStock <= row.reorderLevel; }
+
+  goManage(): void { this.router.navigate(['/medicine/admin/manage']); }
+
+  getStockPercent(row: InventoryRow): number {
+    const max = Math.max(row.reorderLevel * 3, row.quantityInStock, 1);
+    return Math.min((row.quantityInStock / max) * 100, 100);
   }
 }
-

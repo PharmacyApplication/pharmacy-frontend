@@ -31,9 +31,7 @@ export interface UpdateMedicineDto extends CreateMedicineDto {
   isActive: boolean;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class MedicineService {
   private apiUrl = `${environment.apiUrl}/medicine`;
 

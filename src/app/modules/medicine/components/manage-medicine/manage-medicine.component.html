@@ -1,0 +1,187 @@
+<!-- Toast -->
+<div class="toast" *ngIf="toast" [class.toast-error]="toastType==='error'">
+  {{ toast }}
+</div>
+
+<div class="mgmt-page">
+
+  <!-- Header -->
+  <div class="mgmt-header">
+    <div>
+      <h1>Manage Medicines</h1>
+      <p>Add, edit or deactivate medicines in your catalogue</p>
+    </div>
+    <div class="mgmt-header-actions">
+      <button class="btn-secondary" (click)="goInventory()">&#128200; Inventory</button>
+      <button class="btn-primary" (click)="openAddModal()">&#43; Add Medicine</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="mgmt-filters">
+    <div class="search-box">
+      <span class="s-icon">&#128269;</span>
+      <input type="text" placeholder="Search medicines…" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" />
+    </div>
+    <select class="cat-select" [(ngModel)]="filterCategoryId" (ngModelChange)="applyFilters()">
+      <option [value]="0">All Categories</option>
+      <option *ngFor="let c of categories" [value]="c.categoryId">{{ c.categoryName }}</option>
+    </select>
+    <span class="result-count">{{ filteredMedicines.length }} result(s)</span>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-wrap">
+    <div class="spinner"></div><p>Loading medicines…</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!isLoading" class="mgmt-table-card">
+    <div class="mgmt-table-wrap">
+      <table class="mgmt-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Rx</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of filteredMedicines" [class.inactive-row]="!m.isActive">
+            <td>
+              <img
+                class="tbl-thumb"
+                [src]="m.imageUrl || 'assets/images/medicine-placeholder.png'"
+                [alt]="m.name"
+              />
+            </td>
+            <td class="td-name">
+              {{ m.name }}
+              <span class="inactive-chip" *ngIf="!m.isActive">Inactive</span>
+            </td>
+            <td><span class="tbl-cat">{{ m.categoryName }}</span></td>
+            <td class="td-price">&#8377;{{ m.price | number:'1.2-2' }}</td>
+            <td>
+              <span class="stk-badge" [class.stk-ok]="m.quantityInStock > 0" [class.stk-out]="m.quantityInStock === 0">
+                {{ m.quantityInStock > 0 ? m.quantityInStock + ' units' : 'Out' }}
+              </span>
+            </td>
+            <td>
+              <span class="rx-dot" [class.rx-yes]="m.requiresPrescription" [class.rx-no]="!m.requiresPrescription">
+                {{ m.requiresPrescription ? 'Yes' : 'No' }}
+              </span>
+            </td>
+            <td>
+              <span class="status-dot" [class.dot-active]="m.isActive" [class.dot-inactive]="!m.isActive">
+                ● {{ m.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="act-edit" (click)="openEditModal(m)" title="Edit">&#9998;</button>
+                <button class="act-del" (click)="openDeleteConfirm(m)" title="Deactivate" [disabled]="!m.isActive">&#128465;</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredMedicines.length === 0">
+            <td colspan="8" class="no-rows">No medicines found. <a (click)="openAddModal()">Add one now.</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     ADD / EDIT MODAL
+════════════════════════════════════════════════ -->
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ modalMode === 'add' ? 'Add New Medicine' : 'Edit Medicine' }}</h2>
+      <button class="modal-close" (click)="closeModal()">&#10005;</button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="form" (ngSubmit)="submitForm()">
+        <div class="form-error" *ngIf="formError">{{ formError }}</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Medicine Name <span class="req">*</span></label>
+            <input formControlName="name" type="text" placeholder="e.g. Paracetamol 500mg" />
+            <div class="field-err" *ngIf="isFieldInvalid('name')">Name is required.</div>
+          </div>
+          <div class="form-group">
+            <label>Category <span class="req">*</span></label>
+            <select formControlName="categoryId">
+              <option [ngValue]="null" disabled>Select category…</option>
+              <option *ngFor="let c of categories" [value]="c.categoryId">{{ c.categoryName }}</option>
+            </select>
+            <div class="field-err" *ngIf="isFieldInvalid('categoryId')">Category is required.</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea formControlName="description" rows="3" placeholder="Brief description…"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Price (₹) <span class="req">*</span></label>
+            <input formControlName="price" type="number" min="0.01" step="0.01" placeholder="0.00" />
+            <div class="field-err" *ngIf="isFieldInvalid('price')">Valid price required.</div>
+          </div>
+          <div class="form-group">
+            <label>Image URL</label>
+            <input formControlName="imageUrl" type="text" placeholder="https://…" />
+          </div>
+        </div>
+
+        <div class="form-row form-checks">
+          <label class="check-label">
+            <input type="checkbox" formControlName="requiresPrescription" />
+            Requires Prescription
+          </label>
+          <label class="check-label" *ngIf="modalMode === 'edit'">
+            <input type="checkbox" formControlName="isActive" />
+            Active
+          </label>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn-submit" [disabled]="formSubmitting">
+            <span *ngIf="!formSubmitting">{{ modalMode === 'add' ? 'Add Medicine' : 'Save Changes' }}</span>
+            <span *ngIf="formSubmitting" class="spin-mini"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     DELETE CONFIRM DIALOG
+════════════════════════════════════════════════ -->
+<div class="modal-backdrop" *ngIf="isDeleteConfirmOpen" (click)="cancelDelete()">
+  <div class="confirm-dialog" (click)="$event.stopPropagation()">
+    <div class="confirm-icon">&#9888;</div>
+    <h3>Deactivate Medicine?</h3>
+    <p>
+      <strong>{{ medicineToDelete?.name }}</strong> will be marked as inactive and
+      hidden from the catalogue. This can be reversed by editing the medicine.
+    </p>
+    <div class="confirm-actions">
+      <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
+      <button class="btn-danger" (click)="confirmDelete()">Yes, Deactivate</button>
+    </div>
+  </div>
+</div>
+
