@@ -1,1 +1,94 @@
-<p>place-order works!</p>
+<div class="place-order-page">
+
+  <!-- Success State -->
+  <div *ngIf="placedOrder" class="success-wrapper">
+    <div class="success-card">
+      <div class="success-check">✓</div>
+      <h2 class="success-title">Order Placed!</h2>
+      <p class="success-sub">Your order has been confirmed and is being processed.</p>
+      <div class="order-id-badge">Order ID: #{{ placedOrder.orderId }}</div>
+      <div class="success-details">
+        <div class="detail-row">
+          <span>Total Paid</span>
+          <span class="detail-val">₹{{ placedOrder.totalAmount | number:'1.2-2' }}</span>
+        </div>
+        <div class="detail-row">
+          <span>Status</span>
+          <span class="detail-val status-chip">{{ placedOrder.status }}</span>
+        </div>
+        <div class="detail-row">
+          <span>Shipping To</span>
+          <span class="detail-val address-val">{{ placedOrder.shippingAddress }}</span>
+        </div>
+      </div>
+      <button class="btn-track" (click)="goToOrders()">Track My Orders →</button>
+    </div>
+  </div>
+
+  <!-- Order Form -->
+  <ng-container *ngIf="!placedOrder">
+    <div class="page-header">
+      <h1 class="page-title">Place Order</h1>
+      <p class="page-sub">Confirm your cart and enter a delivery address</p>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </div>
+
+    <ng-container *ngIf="!isLoading">
+      <!-- Empty Cart Guard -->
+      <div *ngIf="isEmpty" class="empty-state">
+        <p>Your cart is empty.</p>
+        <a routerLink="/orders/cart" class="btn-back">← Back to Cart</a>
+      </div>
+
+      <div *ngIf="!isEmpty" class="order-layout">
+        <!-- Cart Summary (read-only) -->
+        <div class="summary-card">
+          <h3 class="card-title">Order Summary</h3>
+          <div class="summary-items">
+            <div *ngFor="let item of cart!.cartItems" class="summary-item">
+              <div class="summary-item-name">{{ item.medicineName }}</div>
+              <div class="summary-item-right">
+                <span class="summary-qty">×{{ item.quantity }}</span>
+                <span class="summary-sub">₹{{ (item.medicinePrice ?? 0) * item.quantity | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-total-row">
+            <span>Total</span>
+            <span class="total-val">₹{{ totalAmount | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <!-- Shipping & Confirm -->
+        <div class="shipping-card">
+          <h3 class="card-title">Shipping Details</h3>
+          <label class="form-label">Delivery Address</label>
+          <textarea
+            class="address-textarea"
+            rows="5"
+            placeholder="Enter your full delivery address…"
+            [(ngModel)]="shippingAddress">
+          </textarea>
+
+          <div *ngIf="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
+
+          <button
+            class="btn-confirm"
+            (click)="confirmOrder()"
+            [disabled]="isPlacing">
+            <span *ngIf="!isPlacing">✓ Confirm &amp; Place Order</span>
+            <span *ngIf="isPlacing" class="spinner">Placing order…</span>
+          </button>
+
+          <a routerLink="/orders/cart" class="btn-back-link">← Back to Cart</a>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+
+</div>

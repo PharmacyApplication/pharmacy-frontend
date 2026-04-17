@@ -1,6 +1,6 @@
 .inventory-container {
   padding: 24px;
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -26,19 +26,53 @@
   cursor: pointer;
 }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.manage-btn {
+  padding: 8px 16px;
+  background: #17a2b8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.manage-btn:hover {
+  background: #138496;
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
+.section h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1a3c5e;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+
 .table-wrapper {
   overflow-x: auto;
   border-radius: 10px;
   border: 1px solid #e0e0e0;
 }
 
-.inventory-table {
+.inventory-table, .medicine-table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
 }
 
-.inventory-table th {
+.inventory-table th, .medicine-table th {
   background: #1a3c5e;
   color: #fff;
   padding: 12px 14px;
@@ -47,14 +81,14 @@
   font-weight: 600;
 }
 
-.inventory-table td {
-  padding: 10px 14px;
+.inventory-table td, .medicine-table td {
+  padding: 14px 12px;
   font-size: 0.9rem;
   border-bottom: 1px solid #f0f0f0;
   vertical-align: middle;
 }
 
-.inventory-table tbody tr:hover {
+.inventory-table tbody tr:hover, .medicine-table tbody tr:hover {
   background: #f8f9fa;
 }
 
@@ -69,20 +103,32 @@
 .medicine-name {
   font-weight: 600;
   color: #222;
+  min-width: 150px;
 }
 
-.qty-input {
-  width: 80px;
+.qty-input, .edit-input {
+  width: 90px;
   padding: 6px 8px;
   border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 0.9rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
   text-align: center;
+  font-weight: 600;
 }
 
-.qty-input:focus {
+.qty-input:focus, .edit-input:focus {
   outline: none;
   border-color: #2a7ae4;
+  box-shadow: 0 0 0 2px rgba(42, 122, 228, 0.1);
+}
+
+.read-only-cell {
+  padding: 14px 12px !important;
+  font-weight: 600;
+  color: #333;
+  background: #f5f5f5;
+  text-align: center;
+  min-width: 100px;
 }
 
 .status-badge {
@@ -108,24 +154,59 @@
   color: #777;
   font-size: 0.83rem;
   white-space: nowrap;
+  min-width: 160px;
 }
 
-.save-btn {
-  padding: 7px 16px;
+.save-btn, .edit-btn, .delete-btn, .cancel-btn, .add-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.save-btn, .add-btn {
   background: #2a7ae4;
   color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background 0.2s;
 }
 
-.save-btn:hover:not(:disabled) {
+.save-btn:hover:not(:disabled), .add-btn:hover:not(:disabled) {
   background: #1a5cbf;
+  box-shadow: 0 2px 6px rgba(42, 122, 228, 0.3);
 }
 
-.save-btn:disabled {
+.edit-btn {
+  background: #ffc107;
+  color: #000;
+}
+
+.edit-btn:hover {
+  background: #e0a800;
+}
+
+.delete-btn {
+  background: #dc3545;
+  color: #fff;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: #fff;
+}
+
+.cancel-btn:hover {
+  background: #545b62;
+}
+
+.save-btn:disabled, .delete-btn:disabled {
   background: #aaa;
   cursor: not-allowed;
 }
@@ -150,5 +231,89 @@
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 16px;
+}
+
+/* Add Medicine Form */
+.add-medicine-form {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+}
+
+.add-medicine-form h4 {
+  margin: 0 0 20px 0;
+  font-size: 1.1rem;
+  color: #1a3c5e;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1a3c5e;
+  margin-bottom: 12px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 0;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.form-field {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 0.9rem;
+}
+
+.form-input.full-width {
+  flex: 1;
+  min-width: 300px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 

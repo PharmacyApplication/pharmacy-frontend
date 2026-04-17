@@ -25,6 +25,8 @@ export interface CreateMedicineDto {
   categoryId: number;
   requiresPrescription: boolean;
   imageUrl: string;
+  quantityInStock?: number;
+  reorderLevel?: number;
 }
 
 export interface UpdateMedicineDto extends CreateMedicineDto {

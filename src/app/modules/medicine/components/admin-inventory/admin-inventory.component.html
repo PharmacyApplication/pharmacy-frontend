@@ -1,73 +1,291 @@
 <div class="inventory-container">
   <div class="inventory-header">
-    <h2>Inventory Management</h2>
-    <label class="low-stock-toggle">
-      <input type="checkbox" [(ngModel)]="showLowStockOnly" />
-      Show low-stock only
-    </label>
+    <h2>{{ isManageMode ? 'Medicine Management' : 'Inventory Management' }}</h2>
+    <div class="header-controls">
+      <label class="low-stock-toggle">
+        <input type="checkbox" [(ngModel)]="showLowStockOnly" />
+        Show low-stock medicines
+      </label>
+      <button
+        class="manage-btn"
+        (click)="toggleManageMode()"
+      >
+        {{ isManageMode ? 'Back to Inventory' : 'Manage Medicines' }}
+      </button>
+    </div>
   </div>
 
-  <div *ngIf="isLoading" class="loading-msg">Loading inventory...</div>
+  <div *ngIf="isLoading" class="loading-msg">Loading...</div>
   <div *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</div>
 
-  <div *ngIf="!isLoading" class="table-wrapper">
-    <table class="inventory-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Medicine Name</th>
-          <th>Current Stock</th>
-          <th>Reorder Level</th>
-          <th>Status</th>
-          <th>Last Updated</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          *ngFor="let row of displayedRows; let i = index"
-          [class.low-stock-row]="isRowLow(row)"
-        >
-          <td>{{ i + 1 }}</td>
-          <td class="medicine-name">{{ row.medicineName }}</td>
-          <td>
+  <!-- Inventory Management Mode -->
+  <div *ngIf="!isLoading && !isManageMode" class="section">
+    <div class="table-wrapper">
+      <table class="inventory-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Medicine Name</th>
+            <th>Current Stock</th>
+            <th>Reorder Level</th>
+            <th>Status</th>
+            <th>Last Updated</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let row of displayedRows; let i = index"
+            [class.low-stock-row]="isRowLow(row)"
+          >
+            <td>{{ i + 1 }}</td>
+            <td class="medicine-name">{{ row.medicineName }}</td>
+            <td class="read-only-cell">{{ row.quantityInStock }}</td>
+            <td>
+              <input
+                type="number"
+                class="qty-input"
+                [(ngModel)]="row.editReorder"
+                min="0"
+              />
+            </td>
+            <td>
+              <span class="status-badge" [class.low]="isRowLow(row)" [class.ok]="!isRowLow(row)">
+                {{ isRowLow(row) ? 'Low Stock' : 'OK' }}
+              </span>
+            </td>
+            <td class="date-cell">{{ row.lastUpdated | date: 'dd MMM yyyy, HH:mm' }}</td>
+            <td>
+              <button
+                class="save-btn"
+                (click)="saveRow(row)"
+                [disabled]="row.saving"
+              >
+                {{ row.saving ? 'Saving...' : 'Update Reorder' }}
+              </button>
+              <span *ngIf="row.saved" class="saved-tick">✔ Saved</span>
+            </td>
+          </tr>
+          <tr *ngIf="displayedRows.length === 0">
+            <td colspan="7" class="no-results">No inventory records to display.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Medicine Management Mode -->
+  <div *ngIf="!isLoading && isManageMode" class="section">
+    <!-- Add New Medicine Form -->
+    <div class="add-medicine-form">
+      <h4>Add New Medicine</h4>
+      
+      <!-- Basic Info Row -->
+      <div class="form-group">
+        <label class="form-label">Basic Information</label>
+        <div class="form-row">
+          <input
+            type="text"
+            placeholder="Medicine Name"
+            [(ngModel)]="newMedicine.name"
+            class="form-input"
+          />
+          <select [(ngModel)]="newMedicine.categoryId" class="form-input">
+            <option [ngValue]="0">Select Category</option>
+            <option *ngFor="let cat of categories" [ngValue]="cat.id">{{ cat.name }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Pricing & Stock Row -->
+      <div class="form-group">
+        <label class="form-label">Pricing & Inventory</label>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="field-label">Price (₹)</label>
             <input
               type="number"
-              class="qty-input"
-              [(ngModel)]="row.editQty"
+              placeholder="0.00"
+              [(ngModel)]="newMedicine.price"
               min="0"
+              step="0.01"
+              class="form-input"
             />
-          </td>
-          <td>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Initial Stock</label>
             <input
               type="number"
-              class="qty-input"
-              [(ngModel)]="row.editReorder"
+              placeholder="0"
+              [(ngModel)]="newMedicine.quantityInStock"
               min="0"
+              class="form-input"
             />
-          </td>
-          <td>
-            <span class="status-badge" [class.low]="isRowLow(row)" [class.ok]="!isRowLow(row)">
-              {{ isRowLow(row) ? 'Low Stock' : 'OK' }}
-            </span>
-          </td>
-          <td class="date-cell">{{ row.lastUpdated | date: 'dd MMM yyyy, HH:mm' }}</td>
-          <td>
-            <button
-              class="save-btn"
-              (click)="saveRow(row)"
-              [disabled]="row.saving"
-            >
-              {{ row.saving ? 'Saving...' : 'Save' }}
-            </button>
-            <span *ngIf="row.saved" class="saved-tick">✔ Saved</span>
-          </td>
-        </tr>
-        <tr *ngIf="displayedRows.length === 0">
-          <td colspan="7" class="no-results">No inventory records to display.</td>
-        </tr>
-      </tbody>
-    </table>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Reorder Level</label>
+            <input
+              type="number"
+              placeholder="0"
+              [(ngModel)]="newMedicine.reorderLevel"
+              min="0"
+              class="form-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Description & Image Row -->
+      <div class="form-group">
+        <label class="form-label">Details</label>
+        <div class="form-row">
+          <input
+            type="text"
+            placeholder="Description"
+            [(ngModel)]="newMedicine.description"
+            class="form-input"
+          />
+          <input
+            type="text"
+            placeholder="Image URL"
+            [(ngModel)]="newMedicine.imageUrl"
+            class="form-input"
+          />
+        </div>
+      </div>
+
+      <!-- Options & Button Row -->
+      <div class="form-group">
+        <label class="form-label">Settings</label>
+        <div class="form-row">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="newMedicine.requiresPrescription" />
+            Requires Prescription
+          </label>
+          <button
+            class="add-btn"
+            (click)="addMedicine()"
+            [disabled]="isAddingMedicine || !newMedicine.name.trim() || newMedicine.price <= 0"
+          >
+            {{ isAddingMedicine ? 'Adding...' : 'Add Medicine' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medicine List -->
+    <div class="table-wrapper">
+      <table class="medicine-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>Rx Required</th>
+            <th>Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let medicine of medicines; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>
+              <input
+                *ngIf="medicine.editing"
+                type="text"
+                [(ngModel)]="medicine.name"
+                class="edit-input"
+              />
+              <span *ngIf="!medicine.editing">{{ medicine.name }}</span>
+            </td>
+            <td>
+              <input
+                *ngIf="medicine.editing"
+                type="text"
+                [(ngModel)]="medicine.description"
+                class="edit-input"
+              />
+              <span *ngIf="!medicine.editing">{{ medicine.description }}</span>
+            </td>
+            <td>
+              <input
+                *ngIf="medicine.editing"
+                type="number"
+                [(ngModel)]="medicine.price"
+                min="0"
+                step="0.01"
+                class="edit-input"
+              />
+              <span *ngIf="!medicine.editing">₹{{ medicine.price | number: '1.2-2' }}</span>
+            </td>
+            <td>
+              <select
+                *ngIf="medicine.editing"
+                [(ngModel)]="medicine.categoryId"
+                class="edit-input"
+              >
+                <option *ngFor="let cat of categories" [ngValue]="cat.id">{{ cat.name }}</option>
+              </select>
+              <span *ngIf="!medicine.editing">{{ medicine.categoryName }}</span>
+            </td>
+            <td>
+              <input
+                *ngIf="medicine.editing"
+                type="checkbox"
+                [(ngModel)]="medicine.requiresPrescription"
+              />
+              <span *ngIf="!medicine.editing">{{ medicine.requiresPrescription ? 'Yes' : 'No' }}</span>
+            </td>
+            <td>
+              <input
+                *ngIf="medicine.editing"
+                type="checkbox"
+                [(ngModel)]="medicine.isActive"
+              />
+              <span *ngIf="!medicine.editing">{{ medicine.isActive ? 'Yes' : 'No' }}</span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  *ngIf="!medicine.editing"
+                  class="edit-btn"
+                  (click)="editMedicine(medicine)"
+                >
+                  Edit
+                </button>
+                <button
+                  *ngIf="medicine.editing"
+                  class="save-btn"
+                  (click)="saveMedicine(medicine)"
+                  [disabled]="medicine.saving"
+                >
+                  {{ medicine.saving ? 'Saving...' : 'Save' }}
+                </button>
+                <button
+                  *ngIf="medicine.editing"
+                  class="cancel-btn"
+                  (click)="cancelEdit(medicine)"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="delete-btn"
+                  (click)="deleteMedicine(medicine)"
+                  [disabled]="medicine.deleting"
+                >
+                  {{ medicine.deleting ? 'Deleting...' : 'Delete' }}
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="medicines.length === 0">
+            <td colspan="8" class="no-results">No medicines to display.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
