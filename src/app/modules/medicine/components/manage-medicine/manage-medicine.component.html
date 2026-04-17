@@ -139,8 +139,51 @@
             <div class="field-err" *ngIf="isFieldInvalid('price')">Valid price required.</div>
           </div>
           <div class="form-group">
-            <label>Image URL</label>
-            <input formControlName="imageUrl" type="text" placeholder="https://…" />
+  <label>Medicine Image</label>
+
+  <!-- File picker -->
+  <label class="img-upload-label">
+    <input
+      type="file"
+      accept="image/*"
+      style="display:none"
+      (change)="onImageFileSelected($event)"
+      [disabled]="imageUploading"
+    />
+    <span class="img-upload-btn">
+      <span *ngIf="!imageUploading">&#128247; Choose Image</span>
+      <span *ngIf="imageUploading" class="spin-mini"></span>
+      <span *ngIf="imageUploading"> Uploading…</span>
+    </span>
+  </label>
+
+  <!-- Preview -->
+  <div class="img-preview-wrap" *ngIf="imagePreview">
+    <img [src]="imagePreview" alt="Preview" class="img-preview" />
+    <button type="button" class="img-clear-btn"
+      (click)="imagePreview=''; form.patchValue({imageUrl:''})">&#10005;</button>
+  </div>
+
+  <div class="field-err" *ngIf="imageUploadError">{{ imageUploadError }}</div>
+  <!-- Hidden field still holds the Cloudinary URL -->
+  <input formControlName="imageUrl" type="hidden" />
+</div>
+        </div>
+
+        <div class="form-row" *ngIf="modalMode === 'add'">
+          <div class="form-group">
+            <label>Initial Stock <span class="req">*</span></label>
+            <input formControlName="quantityInStock" type="number" min="0" step="1" placeholder="0" />
+            <div class="field-err" *ngIf="isFieldInvalid('quantityInStock')">
+              Stock quantity is required (min 0).
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Reorder Level <span class="req">*</span></label>
+            <input formControlName="reorderLevel" type="number" min="0" step="1" placeholder="10" />
+            <div class="field-err" *ngIf="isFieldInvalid('reorderLevel')">
+              Reorder level is required (min 0).
+            </div>
           </div>
         </div>
 

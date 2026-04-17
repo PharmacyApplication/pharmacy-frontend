@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MedicineService, MedicineDto } from '../../services/medicine.service';
 import { CategoryService, CategoryDto } from '../../services/category.service';
+import { UploadService } from '../../services/upload.service';
 
 @Component({
   selector: 'app-manage-medicine',
@@ -31,22 +32,29 @@ export class ManageMedicineComponent implements OnInit {
 
   toast = '';
   toastType: 'success' | 'error' = 'success';
+  
 
+  imagePreview: string = '';
+  imageUploading = false;
+  imageUploadError = '';
   constructor(
     private fb: FormBuilder,
     private medicineService: MedicineService,
     private categoryService: CategoryService,
+    private uploadService: UploadService,
     private router: Router
   ) {
-    this.form = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(200)]],
-      description: [''],
-      price: [null, [Validators.required, Validators.min(0.01)]],
-      categoryId: [null, Validators.required],
-      requiresPrescription: [false],
-      imageUrl: [''],
-      isActive: [true]
-    });
+this.form = this.fb.group({
+  name: ['', [Validators.required, Validators.maxLength(200)]],
+  description: [''],
+  price: [null, [Validators.required, Validators.min(0.01)]],
+  categoryId: [null, Validators.required],
+  requiresPrescription: [false],
+  imageUrl: [''],
+  isActive: [true],
+  quantityInStock: [0, [Validators.required, Validators.min(0)]],   // ← add
+  reorderLevel: [10, [Validators.required, Validators.min(0)]]       // ← add
+});
   }
 
   ngOnInit(): void {
@@ -84,13 +92,20 @@ export class ManageMedicineComponent implements OnInit {
 
   // ── Modal helpers ──
 
-  openAddModal(): void {
-    this.modalMode = 'add';
-    this.selectedMedicine = null;
-    this.form.reset({ requiresPrescription: false, isActive: true });
-    this.formError = '';
-    this.isModalOpen = true;
-  }
+openAddModal(): void {
+  this.modalMode = 'add';
+  this.selectedMedicine = null;
+  this.form.reset({
+    requiresPrescription: false,
+    isActive: true,
+    quantityInStock: 0,    // ← add
+    reorderLevel: 10       // ← add
+  });
+  this.formError = '';
+  this.imagePreview = '';
+  this.imageUploadError = '';
+  this.isModalOpen = true;
+}
 
   openEditModal(m: MedicineDto): void {
     this.modalMode = 'edit';
@@ -102,9 +117,13 @@ export class ManageMedicineComponent implements OnInit {
       categoryId: m.categoryId,
       requiresPrescription: m.requiresPrescription,
       imageUrl: m.imageUrl,
-      isActive: m.isActive
+      isActive: m.isActive,
+      quantityInStock: m.quantityInStock,
+      reorderLevel: m.reorderLevel
     });
     this.formError = '';
+    this.imagePreview = m.imageUrl || '';
+    this.imageUploadError = '';
     this.isModalOpen = true;
   }
 
@@ -117,27 +136,29 @@ export class ManageMedicineComponent implements OnInit {
 
     const val = this.form.value;
 
-    if (this.modalMode === 'add') {
-      this.medicineService.create({
-        name: val.name,
-        description: val.description,
-        price: val.price,
-        categoryId: Number(val.categoryId),
-        requiresPrescription: val.requiresPrescription,
-        imageUrl: val.imageUrl
-      }).subscribe({
-        next: () => {
-          this.formSubmitting = false;
-          this.isModalOpen = false;
-          this.showToast('Medicine added successfully!', 'success');
-          this.loadAll();
-        },
-        error: (e) => {
-          this.formSubmitting = false;
-          this.formError = e?.error?.message || 'Failed to create medicine.';
-        }
-      });
-    } else {
+if (this.modalMode === 'add') {
+  this.medicineService.create({
+    name: val.name,
+    description: val.description,
+    price: val.price,
+    categoryId: Number(val.categoryId),
+    requiresPrescription: val.requiresPrescription,
+    imageUrl: val.imageUrl,
+    quantityInStock: val.quantityInStock,   // ← add
+    reorderLevel: val.reorderLevel          // ← add
+  }).subscribe({
+    next: () => {
+      this.formSubmitting = false;
+      this.isModalOpen = false;
+      this.showToast('Medicine added!', 'success');
+      this.loadAll();
+    },
+    error: (e) => {
+      this.formSubmitting = false;
+      this.formError = e?.error?.message || 'Failed to create medicine.';
+    }
+  });
+} else {
       this.medicineService.update(this.selectedMedicine!.medicineId, {
         name: val.name,
         description: val.description,
@@ -145,7 +166,9 @@ export class ManageMedicineComponent implements OnInit {
         categoryId: Number(val.categoryId),
         requiresPrescription: val.requiresPrescription,
         imageUrl: val.imageUrl,
-        isActive: val.isActive
+        isActive: val.isActive,
+        quantityInStock: val.quantityInStock,
+        reorderLevel: val.reorderLevel
       }).subscribe({
         next: () => {
           this.formSubmitting = false;
@@ -200,6 +223,33 @@ export class ManageMedicineComponent implements OnInit {
     const ctrl = this.form.get(field);
     return !!(ctrl && ctrl.invalid && ctrl.touched);
   }
+
+  onImageFileSelected(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  if (!input.files?.length) return;
+
+  const file = input.files[0];
+  this.imageUploading = true;
+  this.imageUploadError = '';
+
+  // Show local preview immediately
+  const reader = new FileReader();
+  reader.onload = () => this.imagePreview = reader.result as string;
+  reader.readAsDataURL(file);
+
+  // Upload to Cloudinary via backend
+  this.uploadService.uploadImage(file).subscribe({
+    next: (res) => {
+      this.form.patchValue({ imageUrl: res.url });
+      this.imagePreview = res.url;
+      this.imageUploading = false;
+    },
+    error: () => {
+      this.imageUploadError = 'Image upload failed. Try again.';
+      this.imageUploading = false;
+    }
+  });
+}
 }
 
 
