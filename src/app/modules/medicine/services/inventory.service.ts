@@ -18,9 +18,7 @@ export interface UpdateInventoryDto {
   reorderLevel: number;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class InventoryService {
   private apiUrl = `${environment.apiUrl}/inventory`;
 

@@ -1,48 +1,86 @@
-<div class="detail-container">
-  <button class="back-btn" (click)="goBack()">&#8592; Back to Medicines</button>
+<!-- Toast -->
+<div class="toast" *ngIf="toastMessage" [class.toast-error]="toastType==='error'">
+  {{ toastMessage }}
+</div>
 
-  <div *ngIf="isLoading" class="loading-msg">Loading medicine details...</div>
-  <div *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</div>
-  <div *ngIf="successMessage" class="success-msg">{{ successMessage }}</div>
+<div class="det-page">
+  <!-- Back -->
+  <button class="back-btn" (click)="goBack()">
+    <span>&#8592;</span> Back to Medicines
+  </button>
 
-  <div *ngIf="medicine && !isLoading" class="detail-card">
-    <div class="detail-image-section">
-      <img
-        [src]="medicine.imageUrl || 'assets/images/medicine-placeholder.png'"
-        [alt]="medicine.name"
-        class="detail-image"
-      />
-      <span *ngIf="medicine.requiresPrescription" class="rx-badge">Prescription Required</span>
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="det-skeleton">
+    <div class="skel-img-big"></div>
+    <div class="skel-info">
+      <div class="skel-line w60"></div>
+      <div class="skel-line w40"></div>
+      <div class="skel-line w80"></div>
+      <div class="skel-line w30"></div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMessage && !isLoading" class="det-error">{{ errorMessage }}</div>
+
+  <!-- Detail Card -->
+  <div *ngIf="medicine && !isLoading" class="det-card">
+    <div class="det-img-col">
+      <div class="det-img-wrap">
+        <img [src]="medicine.imageUrl || 'assets/images/medicine-placeholder.png'" [alt]="medicine.name" />
+        <span *ngIf="medicine.requiresPrescription" class="rx-badge">Prescription Required</span>
+      </div>
     </div>
 
-    <div class="detail-info-section">
-      <h1 class="detail-name">{{ medicine.name }}</h1>
-      <p class="detail-category">Category: <strong>{{ medicine.categoryName }}</strong></p>
+    <div class="det-info-col">
+      <span class="det-cat">{{ medicine.categoryName }}</span>
+      <h1 class="det-name">{{ medicine.name }}</h1>
 
-      <p class="detail-description">{{ medicine.description }}</p>
+      <p class="det-desc">{{ medicine.description }}</p>
 
-      <div class="detail-price">₹{{ medicine.price | number: '1.2-2' }}</div>
+      <div class="det-price">&#8377;{{ medicine.price | number:'1.2-2' }}</div>
 
-      <div class="stock-info">
-        <span class="stock-label">Availability:</span>
-        <span [class.in-stock]="isInStock()" [class.out-of-stock]="!isInStock()" class="stock-badge">
-          {{ isInStock() ? 'In Stock (' + medicine.quantityInStock + ' units)' : 'Out of Stock' }}
-        </span>
+      <div class="det-stock-row">
+        <div class="stock-indicator" [class.green]="isInStock()" [class.red]="!isInStock()">
+          <span class="dot"></span>
+          <span>{{ isInStock() ? 'In Stock' : 'Out of Stock' }}</span>
+        </div>
+        <span *ngIf="isInStock()" class="units-left">{{ medicine.quantityInStock }} units available</span>
+      </div>
+
+      <div *ngIf="medicine.requiresPrescription" class="rx-alert">
+        <span class="rx-icon">&#128203;</span>
+        <div>
+          <strong>Prescription Required</strong>
+          <p>You'll be asked to upload a valid prescription at checkout.</p>
+        </div>
       </div>
 
       <button
-        class="add-to-cart-btn"
+        class="add-cart-btn"
         (click)="addToCart()"
         [disabled]="!isInStock() || addingToCart"
       >
-        {{ addingToCart ? 'Adding...' : 'Add to Cart' }}
+        <span *ngIf="!addingToCart">&#128722; Add to Cart</span>
+        <span *ngIf="addingToCart" class="spinner-inline"></span>
+        <span *ngIf="addingToCart">Adding…</span>
       </button>
 
-      <p *ngIf="medicine.requiresPrescription" class="rx-note">
-        ⚠️ A valid prescription is required for this medicine. You will be prompted to upload it at checkout.
-      </p>
+      <div class="meta-chips">
+        <div class="meta-chip">
+          <span class="chip-label">Category</span>
+          <span class="chip-val">{{ medicine.categoryName }}</span>
+        </div>
+        <div class="meta-chip">
+          <span class="chip-label">Added</span>
+          <span class="chip-val">{{ medicine.createdAt | date:'dd MMM yyyy' }}</span>
+        </div>
+        <div class="meta-chip">
+          <span class="chip-label">Status</span>
+          <span class="chip-val">{{ medicine.isActive ? 'Active' : 'Inactive' }}</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-
 

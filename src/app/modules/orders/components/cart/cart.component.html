@@ -1,1 +1,81 @@
-<p>cart works!</p>
+<div class="cart-page">
+  <div class="cart-header">
+    <div class="cart-icon">🛒</div>
+    <div>
+      <h1 class="cart-title">Your Cart</h1>
+      <p class="cart-subtitle">Review items before placing your order</p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <p>Loading your cart…</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Empty Cart -->
+  <div *ngIf="!isLoading && isEmpty" class="empty-state">
+    <div class="empty-icon">🧺</div>
+    <h3>Your cart is empty</h3>
+    <p>Browse our medicines and add items to your cart.</p>
+    <a routerLink="/medicine" class="btn-browse">Browse Medicines</a>
+  </div>
+
+  <!-- Cart Items -->
+  <div *ngIf="!isLoading && !isEmpty" class="cart-content">
+    <div class="items-card">
+      <div class="items-table-header">
+        <span>Medicine</span>
+        <span>Price</span>
+        <span>Qty</span>
+        <span>Subtotal</span>
+        <span></span>
+      </div>
+
+      <div *ngFor="let item of cart!.cartItems" class="cart-item" [class.removing]="removingItemId === item.cartItemId">
+        <span class="item-name">{{ item.medicineName }}</span>
+        <span class="item-price">₹{{ item.medicinePrice | number:'1.2-2' }}</span>
+        <span class="item-qty">
+          <span class="qty-badge">{{ item.quantity }}</span>
+        </span>
+        <span class="item-subtotal">₹{{ (item.medicinePrice ?? 0) * item.quantity | number:'1.2-2' }}</span>
+        <button
+          class="btn-remove"
+          (click)="removeItem(item.cartItemId)"
+          [disabled]="removingItemId === item.cartItemId"
+          title="Remove item">
+          <span *ngIf="removingItemId !== item.cartItemId">✕</span>
+          <span *ngIf="removingItemId === item.cartItemId" class="spinner">…</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="summary-card">
+      <h3 class="summary-title">Order Summary</h3>
+      <div class="summary-row">
+        <span>Items ({{ cart!.cartItems.length }})</span>
+        <span>₹{{ totalAmount | number:'1.2-2' }}</span>
+      </div>
+      <div class="summary-row summary-shipping">
+        <span>Shipping</span>
+        <span class="free-label">FREE</span>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="summary-row summary-total">
+        <span>Total</span>
+        <span>₹{{ totalAmount | number:'1.2-2' }}</span>
+      </div>
+      <button class="btn-proceed" (click)="proceedToOrder()">
+        Proceed to Order →
+      </button>
+    </div>
+  </div>
+</div>
