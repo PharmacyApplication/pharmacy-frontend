@@ -1,62 +1,91 @@
-<div class="medicine-list-container">
-  <h2 class="page-title">Medicines</h2>
+<div class="ml-page">
 
-  <!-- Filters -->
-  <div class="filters-bar">
-    <input
-      type="text"
-      class="search-input"
-      placeholder="Search medicines..."
-      [(ngModel)]="searchTerm"
-      (ngModelChange)="onSearchChange()"
-    />
-    <select
-      class="category-select"
-      [(ngModel)]="selectedCategoryId"
-      (ngModelChange)="onCategoryChange()"
-    >
-      <option [value]="0">All Categories</option>
-      <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
-    </select>
+  <!-- Hero Header -->
+  <div class="ml-hero">
+    <div class="ml-hero-text">
+      <h1>Our Medicine Catalogue</h1>
+      <p>Browse and order from our wide selection of quality medicines</p>
+    </div>
+    <div class="ml-search-wrap">
+      <span class="search-icon">&#128269;</span>
+      <input
+        class="ml-search"
+        type="text"
+        placeholder="Search by name, category..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+      />
+    </div>
   </div>
 
-  <!-- Loading / Error -->
-  <div *ngIf="isLoading" class="loading-msg">Loading medicines...</div>
-  <div *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</div>
+  <!-- Category Pills -->
+  <div class="ml-cat-bar">
+    <button
+      class="cat-pill"
+      [class.active]="selectedCategoryId === 0"
+      (click)="selectCategory(0)"
+    >All</button>
+    <button
+      *ngFor="let cat of categories"
+      class="cat-pill"
+      [class.active]="selectedCategoryId === cat.id"
+      (click)="selectCategory(cat.id)"
+    >{{ cat.name }}</button>
+  </div>
+
+  <!-- Result count -->
+  <div class="ml-meta" *ngIf="!isLoading">
+    <span>{{ totalCount }} medicine{{ totalCount !== 1 ? 's' : '' }} found</span>
+  </div>
+
+  <!-- Loading skeleton -->
+  <div *ngIf="isLoading" class="skeleton-grid">
+    <div class="skeleton-card" *ngFor="let x of [1,2,3,4,5,6]">
+      <div class="skel-img"></div>
+      <div class="skel-line w80"></div>
+      <div class="skel-line w50"></div>
+      <div class="skel-line w40"></div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMessage" class="ml-error">
+    <span>&#9888;</span> {{ errorMessage }}
+  </div>
 
   <!-- Card Grid -->
-  <div *ngIf="!isLoading" class="medicine-grid">
-    <div
-      class="medicine-card"
-      *ngFor="let medicine of filteredMedicines"
-      [routerLink]="['/medicine/detail', medicine.medicineId]"
+  <div *ngIf="!isLoading && !errorMessage" class="ml-grid">
+    <a
+      class="med-card"
+      *ngFor="let m of filteredMedicines"
+      [routerLink]="['/medicine/detail', m.medicineId]"
     >
-      <div class="card-image-wrapper">
+      <div class="med-card-img-wrap">
         <img
-          [src]="medicine.imageUrl || 'assets/images/medicine-placeholder.png'"
-          [alt]="medicine.name"
-          class="card-image"
+          [src]="m.imageUrl || 'assets/images/medicine-placeholder.png'"
+          [alt]="m.name"
         />
-        <span *ngIf="medicine.requiresPrescription" class="rx-badge">Rx Required</span>
+        <span *ngIf="m.requiresPrescription" class="rx-chip">Rx</span>
+        <span class="stock-dot" [class.green]="isInStock(m)" [class.red]="!isInStock(m)"></span>
       </div>
-      <div class="card-body">
-        <h3 class="card-name">{{ medicine.name }}</h3>
-        <p class="card-category">{{ medicine.categoryName }}</p>
-        <p class="card-price">₹{{ medicine.price | number: '1.2-2' }}</p>
-        <span
-          class="stock-badge"
-          [class.in-stock]="isInStock(medicine)"
-          [class.out-of-stock]="!isInStock(medicine)"
-        >
-          {{ isInStock(medicine) ? 'In Stock' : 'Out of Stock' }}
-        </span>
+      <div class="med-card-body">
+        <span class="cat-tag">{{ m.categoryName }}</span>
+        <h3 class="med-name">{{ m.name }}</h3>
+        <p class="med-desc">{{ (m.description || '') | slice:0:70 }}{{ (m.description.length > 70) ? '…' : '' }}</p>
+        <div class="med-footer">
+          <span class="med-price">&#8377;{{ m.price | number:'1.2-2' }}</span>
+          <span class="avail-tag" [class.instock]="isInStock(m)" [class.outstock]="!isInStock(m)">
+            {{ isInStock(m) ? 'In Stock' : 'Out of Stock' }}
+          </span>
+        </div>
       </div>
-    </div>
+    </a>
 
-    <p *ngIf="filteredMedicines.length === 0" class="no-results">
-      No medicines found matching your search.
-    </p>
+    <div *ngIf="filteredMedicines.length === 0" class="ml-empty">
+      <div class="empty-icon">&#128200;</div>
+      <p>No medicines match your search.</p>
+      <button class="btn-outline" (click)="searchTerm=''; selectCategory(0)">Clear filters</button>
+    </div>
   </div>
 </div>
-
 
