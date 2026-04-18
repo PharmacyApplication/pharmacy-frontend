@@ -1,1 +1,44 @@
-<p>admin-order-management works!</p>
+<div class="admin-page">
+  <div class="page-header">
+    <h1>Order Management</h1>
+    <p>Update order statuses and trigger email notifications</p>
+  </div>
+
+  <div class="toast" *ngIf="toast" [ngClass]="toast.type">{{ toast.message }}</div>
+
+  <div class="table-wrapper" *ngIf="!loading">
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th><th>Customer</th><th>Email</th>
+          <th>Total</th><th>Status</th><th>Date</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let o of orders">
+          <td class="order-id">#{{ o.orderId }}</td>
+          <td>{{ o.customerName }}</td>
+          <td class="email-cell">{{ o.customerEmail }}</td>
+          <td>₹{{ o.totalAmount | number:'1.2-2' }}</td>
+          <td><span class="badge" [ngClass]="o.status.toLowerCase()">{{ o.status }}</span></td>
+          <td>{{ formatDate(o.placedAt) }}</td>
+          <td class="action-cell">
+            <ng-container *ngIf="getNextStatuses(o.status).length > 0; else noAction">
+              <select [(ngModel)]="selectedStatus[o.orderId]">
+                <option value="">— select —</option>
+                <option *ngFor="let s of getNextStatuses(o.status)" [value]="s">{{ s }}</option>
+              </select>
+              <button (click)="update(o.orderId)" [disabled]="!selectedStatus[o.orderId] || updating[o.orderId]">
+                {{ updating[o.orderId] ? '…' : 'Update' }}
+              </button>
+            </ng-container>
+            <ng-template #noAction><span class="no-action">—</span></ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="empty" *ngIf="orders.length === 0">No orders found.</div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading"><div class="spinner"></div><p>Loading orders…</p></div>
+</div>
