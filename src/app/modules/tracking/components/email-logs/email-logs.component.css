@@ -1,0 +1,19 @@
+.logs-page { padding: 32px; font-family: 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; }
+.page-header { margin-bottom: 28px; }
+.page-header h1 { font-size: 26px; font-weight: 700; color: #1e293b; margin: 0 0 4px; }
+.page-header p { color: #64748b; font-size: 14px; margin: 0; }
+.table-wrapper { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { background: #f1f5f9; padding: 13px 16px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
+td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafafa; }
+.order-id { font-weight: 700; color: #1d4ed8; }
+.badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge.sent { background: #d1fae5; color: #065f46; }
+.badge.failed { background: #fee2e2; color: #b91c1c; }
+.error-cell { color: #ef4444; font-size: 13px; max-width: 260px; word-break: break-word; }
+.empty { padding: 40px; text-align: center; color: #94a3b8; }
+.loading-state { text-align: center; padding: 60px; color: #6b7280; }
+.spinner { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
