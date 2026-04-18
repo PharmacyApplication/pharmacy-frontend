@@ -1,1 +1,27 @@
-<p>email-logs works!</p>
+<div class="logs-page">
+  <div class="page-header">
+    <h1>Email Logs</h1>
+    <p>All outgoing notification emails and their delivery status</p>
+  </div>
+
+  <div class="table-wrapper" *ngIf="!loading">
+    <table>
+      <thead>
+        <tr><th>Log ID</th><th>Order ID</th><th>Email Type</th><th>Sent At</th><th>Status</th><th>Error</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of logs">
+          <td>{{ log.emailLogId }}</td>
+          <td class="order-id">#{{ log.orderId }}</td>
+          <td>{{ log.emailType }}</td>
+          <td>{{ formatDate(log.sentAt) }}</td>
+          <td><span class="badge" [ngClass]="log.status.toLowerCase()">{{ log.status }}</span></td>
+          <td class="error-cell">{{ log.errorMessage || '—' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="empty" *ngIf="logs.length === 0">No email logs found.</div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading"><div class="spinner"></div><p>Loading logs…</p></div>
+</div>

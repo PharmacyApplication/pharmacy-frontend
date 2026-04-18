@@ -1,1 +1,39 @@
-<p>order-tracking works!</p>
+<div class="tracking-page">
+  <div class="tracking-card" *ngIf="!loading && !error && order">
+    <div class="card-header">
+      <div class="order-meta">
+        <span class="order-label">Order</span>
+        <span class="order-id">#{{ order.orderId }}</span>
+      </div>
+      <div class="order-total">₹{{ order.totalAmount | number:'1.2-2' }}</div>
+    </div>
+
+    <div class="address-row">
+      <span class="addr-icon">📍</span>
+      <span class="addr-text">{{ order.shippingAddress }}</span>
+    </div>
+
+    <div class="timeline">
+      <div class="step" *ngFor="let step of steps; let last = last" [ngClass]="step.status">
+        <div class="step-left">
+          <div class="step-dot">{{ step.icon }}</div>
+          <div class="step-line" *ngIf="!last"></div>
+        </div>
+        <div class="step-content">
+          <div class="step-label">{{ step.label }}</div>
+          <div class="step-time" *ngIf="step.timestamp">{{ formatDate(step.timestamp) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading order details…</p>
+  </div>
+
+  <div class="error-state" *ngIf="error">
+    <span class="err-icon">⚠️</span>
+    <p>{{ error }}</p>
+  </div>
+</div>
